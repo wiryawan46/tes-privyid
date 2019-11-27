@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"log"
+	model2 "pretest-privyid/modules/v1/category/model"
 	"pretest-privyid/modules/v1/product/model"
 )
 
@@ -77,5 +78,90 @@ func (conn *ProductRepoPostgres) UploadImage(productId string, param model.Image
 	}
 	result.RowsAffected()
 	output = ResultRepository{Result: result}
+	return output
+}
+
+func (conn *ProductRepoPostgres) GetAllProduct() ResultRepository {
+	output := ResultRepository{}
+	var (
+		product  model.Product
+		products []model.Product
+	)
+
+	productQuery := "SELECT id, name, description FROM product WHERE enable = true"
+	resultDB, errorDB := conn.dbConn.Query(productQuery)
+	if errorDB != nil {
+		log.Println("Error prepare query : ", errorDB.Error())
+		output = ResultRepository{Error: errorDB}
+		return output
+	}
+
+	for resultDB.Next() {
+		errorRetrievedRecord := resultDB.Scan(&product.ID, &product.Name, &product.Description)
+		if errorRetrievedRecord != nil {
+			log.Println("Error retrieve data : ", errorDB.Error())
+			output = ResultRepository{Error: errorDB}
+			return output
+		}
+		products = append(products, product)
+	}
+	output = ResultRepository{Result: products}
+
+	return output
+}
+func (conn *ProductRepoPostgres) GetCategoryOfProduct(productId string) ResultRepository {
+	output := ResultRepository{}
+	var (
+		productCategory   model2.Category
+		productCategories []model2.Category
+	)
+
+	productQuery := "SELECT DISTINCT c.id, c.name FROM category c INNER JOIN category_product cp ON c.id = cp.category_id WHERE cp.product_id = $1"
+	resultDB, errorDB := conn.dbConn.Query(productQuery, productId)
+	if errorDB != nil {
+		log.Println("Error prepare query : ", errorDB.Error())
+		output = ResultRepository{Error: errorDB}
+		return output
+	}
+
+	for resultDB.Next() {
+		errorRetrievedRecord := resultDB.Scan(&productCategory.ID, &productCategory.Name)
+		if errorRetrievedRecord != nil {
+			log.Println("Error retrieve data : ", errorDB.Error())
+			output = ResultRepository{Error: errorDB}
+			return output
+		}
+		productCategories = append(productCategories, productCategory)
+	}
+	output = ResultRepository{Result: productCategories}
+
+	return output
+}
+func (conn *ProductRepoPostgres) GetImageOfProduct(productId string) ResultRepository {
+	output := ResultRepository{}
+	var (
+		productImage  model.Image
+		productImages []model.Image
+	)
+
+	productQuery := "SELECT DISTINCT i.name, i.file FROM image i INNER JOIN product_image pi ON i.id = pi.image_id WHERE pi.product_id = $1"
+	resultDB, errorDB := conn.dbConn.Query(productQuery, productId)
+	if errorDB != nil {
+		log.Println("Error prepare query : ", errorDB.Error())
+		output = ResultRepository{Error: errorDB}
+		return output
+	}
+
+	for resultDB.Next() {
+		errorRetrievedRecord := resultDB.Scan(&productImage.Name, &productImage.File)
+		if errorRetrievedRecord != nil {
+			log.Println("Error retrieve data : ", errorDB.Error())
+			output = ResultRepository{Error: errorDB}
+			return output
+		}
+		productImages = append(productImages, productImage)
+	}
+	output = ResultRepository{Result: productImages}
+
 	return output
 }

@@ -3,8 +3,10 @@ package usecase
 import (
 	"fmt"
 	"log"
+	model2 "pretest-privyid/modules/v1/category/model"
 	"pretest-privyid/modules/v1/product/model"
 	"pretest-privyid/modules/v1/product/repository"
+	"strconv"
 )
 
 /**
@@ -52,5 +54,49 @@ func (rp *ProductUsecaseImpl) UploadImage(productId string, param model.Image) R
 		return output
 	}
 	output = ResultUseCase{Result: param}
+	return output
+}
+
+func (rp *ProductUsecaseImpl) GetAllProduct() ResultUseCase {
+	output := ResultUseCase{}
+
+	var	products []model.Product
+
+	resultProduct := rp.ProductRepository.GetAllProduct()
+	if resultProduct.Error != nil {
+		err := fmt.Errorf("Gagal mendapatkan data")
+		log.Println(err.Error())
+		output = ResultUseCase{Error: err}
+		return output
+	}
+	products = resultProduct.Result.([]model.Product)
+
+	for i := 0; i < len(products); i++ {
+		id := strconv.Itoa(products[i].ID)
+		resultCategory := rp.ProductRepository.GetCategoryOfProduct(id)
+		if resultCategory.Error != nil {
+			err := fmt.Errorf("Gagal mendapatkan data category")
+			log.Println(err.Error())
+			output = ResultUseCase{Error: err}
+			return output
+		}
+		category, _ := resultCategory.Result.([]model2.Category)
+		products[i].Categories = category
+	}
+
+	for i := 0; i < len(products); i++ {
+		id := strconv.Itoa(products[i].ID)
+		resultCategory := rp.ProductRepository.GetImageOfProduct(id)
+		if resultCategory.Error != nil {
+			err := fmt.Errorf("Gagal mendapatkan data category")
+			log.Println(err.Error())
+			output = ResultUseCase{Error: err}
+			return output
+		}
+		images, _ := resultCategory.Result.([]model.Image)
+		products[i].Image = images
+	}
+
+	output = ResultUseCase{Result: products}
 	return output
 }

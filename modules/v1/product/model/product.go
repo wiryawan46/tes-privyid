@@ -30,5 +30,3 @@ type Image struct {
 	Name string `json:"name"`
 	File string `json:"file"`
 }
-
-type Products []Product

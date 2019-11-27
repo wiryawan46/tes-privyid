@@ -15,4 +15,7 @@ type ResultRepository struct {
 type ProductRepository interface {
 	CreateProduct(param model.Product) ResultRepository
 	UploadImage(productId string, param model.Image) ResultRepository
+	GetAllProduct() ResultRepository
+	GetCategoryOfProduct(productId string) ResultRepository
+	GetImageOfProduct(productId string) ResultRepository
 }

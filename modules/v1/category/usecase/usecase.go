@@ -17,4 +17,5 @@ type CategoryUsecase interface {
 	CreateCategory(param model.Category) ResultUseCase
 	GetAllCategories() ResultUseCase
 	GetCategoryById(id string) ResultUseCase
+	UpdateCategoryById(id string, param model.Category) ResultUseCase
 }

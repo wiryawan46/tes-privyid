@@ -71,3 +71,23 @@ func (rp *CategoryUsecaseImpl) GetCategoryById(id string) ResultUseCase {
 	output = ResultUseCase{Result: categories}
 	return output
 }
+
+func (rp *CategoryUsecaseImpl) UpdateCategoryById(id string, param model.Category) ResultUseCase {
+	output := ResultUseCase{}
+
+	saveResult := rp.CategoryRepository.UpdateCategoryById(id, param)
+	if saveResult.Error != nil {
+		log.Println("Error mengupdate data :", saveResult.Error.Error())
+		output = ResultUseCase{Error: saveResult.Error}
+		return output
+	}
+	data, ok := saveResult.Result.(model.Category)
+	if !ok {
+		err := fmt.Errorf("Gagal mendapatkan data")
+		log.Println(err.Error())
+		output = ResultUseCase{Error: err}
+		return output
+	}
+	output = ResultUseCase{Result: data}
+	return output
+}

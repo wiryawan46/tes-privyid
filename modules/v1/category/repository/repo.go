@@ -16,4 +16,5 @@ type CategoryRepository interface {
 	CreateCategory(param model.Category) ResultRepository
 	GetAllCategories() ResultRepository
 	GetCategoryById(id string) ResultRepository
+	UpdateCategoryById(id string, param model.Category) ResultRepository
 }

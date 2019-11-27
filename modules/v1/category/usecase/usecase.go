@@ -18,4 +18,5 @@ type CategoryUsecase interface {
 	GetAllCategories() ResultUseCase
 	GetCategoryById(id string) ResultUseCase
 	UpdateCategoryById(id string, param model.Category) ResultUseCase
+	DeleteCategory(id string) ResultUseCase
 }

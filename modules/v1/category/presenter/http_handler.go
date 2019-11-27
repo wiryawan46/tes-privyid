@@ -29,6 +29,7 @@ func (h *HTTPCategoryHandler) MountCategory(group *echo.Group)  {
 	group.GET("/categories", h.GetAllCategories)
 	group.GET("/category/:id", h.GetCategoryById)
 	group.PUT("/category/:id", h.UpdateCategory)
+	group.DELETE("/category/:id", h.DeleteCategory)
 }
 
 func (h *HTTPCategoryHandler) CreateCategory(c echo.Context) error  {
@@ -103,4 +104,20 @@ func (h *HTTPCategoryHandler) UpdateCategory(c echo.Context) error  {
 		return c.JSON(http.StatusOK, helper.ResponseDetailOutput(err.Error(), data))
 	}
 	return c.JSON(http.StatusCreated, data)
+}
+
+func (h *HTTPCategoryHandler) DeleteCategory(c echo.Context) error {
+	idCategory := c.Param("id")
+	if idCategory == "" {
+		log.Println("no_parameter")
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput("Parameter id diperlukan", nil))
+	}
+	deleteResult := h.CategoryUsecase.DeleteCategory(idCategory)
+	if deleteResult.Error != nil {
+		err := fmt.Errorf("Gagal menghapus data category")
+		log.Println(deleteResult.Error.Error())
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput(err.Error(), nil))
+	}
+	result := echo.Map{"message" : "Data Category berhasil dihapus"}
+	return c.JSON(http.StatusOK, result)
 }

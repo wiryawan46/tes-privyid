@@ -17,4 +17,5 @@ type CategoryRepository interface {
 	GetAllCategories() ResultRepository
 	GetCategoryById(id string) ResultRepository
 	UpdateCategoryById(id string, param model.Category) ResultRepository
+	DeleteCategory(id string) ResultRepository
 }

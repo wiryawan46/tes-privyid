@@ -91,3 +91,16 @@ func (rp *CategoryUsecaseImpl) UpdateCategoryById(id string, param model.Categor
 	output = ResultUseCase{Result: data}
 	return output
 }
+
+func (rp *CategoryUsecaseImpl) DeleteCategory(id string) ResultUseCase {
+	output := ResultUseCase{}
+
+	deleteResult := rp.CategoryRepository.DeleteCategory(id)
+	if deleteResult.Error != nil {
+		log.Println("Error hapus data :", deleteResult.Error.Error())
+		output = ResultUseCase{Error: deleteResult.Error}
+		return output
+	}
+	output = ResultUseCase{Result: id}
+	return output
+}

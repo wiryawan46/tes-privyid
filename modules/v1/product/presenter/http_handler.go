@@ -30,6 +30,7 @@ func (h *HTTPProductHandler) MountProduct(group *echo.Group)  {
 	group.POST("/product", h.CreateProduct)
 	group.POST("/product-image", h.UploadImage)
 	group.GET("/products", h.GetAllProduct)
+	group.GET("/product/:id", h.GetProductById)
 }
 
 func (h *HTTPProductHandler) CreateProduct(c echo.Context) error  {
@@ -105,6 +106,18 @@ func (h *HTTPProductHandler) UploadImage(c echo.Context) error {
 
 func (h *HTTPProductHandler) GetAllProduct(c echo.Context) error {
 	products := h.ProductUsecase.GetAllProduct()
+	if products.Error != nil {
+		err := fmt.Errorf("Gagal mendapatkan product")
+		log.Println(products.Error.Error())
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput(err.Error(), nil))
+	}
+	result, _ := products.Result.([]model.Product)
+	return c.JSON(http.StatusOK, result)
+}
+
+func (h *HTTPProductHandler) GetProductById(c echo.Context) error {
+	productId := c.Param("id")
+	products := h.ProductUsecase.GetProductById(productId)
 	if products.Error != nil {
 		err := fmt.Errorf("Gagal mendapatkan product")
 		log.Println(products.Error.Error())

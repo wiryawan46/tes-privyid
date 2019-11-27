@@ -18,4 +18,5 @@ type ProductRepository interface {
 	GetAllProduct() ResultRepository
 	GetCategoryOfProduct(productId string) ResultRepository
 	GetImageOfProduct(productId string) ResultRepository
+	GetProductById(productId string) ResultRepository
 }

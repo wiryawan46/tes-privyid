@@ -165,3 +165,32 @@ func (conn *ProductRepoPostgres) GetImageOfProduct(productId string) ResultRepos
 
 	return output
 }
+
+func (conn *ProductRepoPostgres) GetProductById(productId string) ResultRepository {
+	output := ResultRepository{}
+	var (
+		product  model.Product
+		products []model.Product
+	)
+
+	productQuery := "SELECT id, name, description FROM product WHERE enable = true AND id = $1"
+	resultDB, errorDB := conn.dbConn.Query(productQuery, productId)
+	if errorDB != nil {
+		log.Println("Error prepare query : ", errorDB.Error())
+		output = ResultRepository{Error: errorDB}
+		return output
+	}
+
+	for resultDB.Next() {
+		errorRetrievedRecord := resultDB.Scan(&product.ID, &product.Name, &product.Description)
+		if errorRetrievedRecord != nil {
+			log.Println("Error retrieve data : ", errorDB.Error())
+			output = ResultRepository{Error: errorDB}
+			return output
+		}
+		products = append(products, product)
+	}
+	output = ResultRepository{Result: products}
+
+	return output
+}

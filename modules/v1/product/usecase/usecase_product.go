@@ -100,3 +100,47 @@ func (rp *ProductUsecaseImpl) GetAllProduct() ResultUseCase {
 	output = ResultUseCase{Result: products}
 	return output
 }
+
+func (rp *ProductUsecaseImpl) GetProductById(productId string) ResultUseCase {
+	output := ResultUseCase{}
+
+	var	products []model.Product
+
+	resultProduct := rp.ProductRepository.GetProductById(productId)
+	if resultProduct.Error != nil {
+		err := fmt.Errorf("Gagal mendapatkan data")
+		log.Println(err.Error())
+		output = ResultUseCase{Error: err}
+		return output
+	}
+	products = resultProduct.Result.([]model.Product)
+
+	for i := 0; i < len(products); i++ {
+		id := strconv.Itoa(products[i].ID)
+		resultCategory := rp.ProductRepository.GetCategoryOfProduct(id)
+		if resultCategory.Error != nil {
+			err := fmt.Errorf("Gagal mendapatkan data category")
+			log.Println(err.Error())
+			output = ResultUseCase{Error: err}
+			return output
+		}
+		category, _ := resultCategory.Result.([]model2.Category)
+		products[i].Categories = category
+	}
+
+	for i := 0; i < len(products); i++ {
+		id := strconv.Itoa(products[i].ID)
+		resultCategory := rp.ProductRepository.GetImageOfProduct(id)
+		if resultCategory.Error != nil {
+			err := fmt.Errorf("Gagal mendapatkan data category")
+			log.Println(err.Error())
+			output = ResultUseCase{Error: err}
+			return output
+		}
+		images, _ := resultCategory.Result.([]model.Image)
+		products[i].Image = images
+	}
+
+	output = ResultUseCase{Result: products}
+	return output
+}

@@ -56,3 +56,18 @@ func (rp *CategoryUsecaseImpl) GetAllCategories() ResultUseCase {
 	output = ResultUseCase{Result: categories}
 	return output
 }
+
+func (rp *CategoryUsecaseImpl) GetCategoryById(id string) ResultUseCase {
+	output := ResultUseCase{}
+
+	resultData := rp.CategoryRepository.GetCategoryById(id)
+	if resultData.Error != nil {
+		err := fmt.Errorf("Gagal mendapatkan data")
+		log.Println(err.Error())
+		output = ResultUseCase{Error: err}
+		return output
+	}
+	categories, _ := resultData.Result.(model.Categories)
+	output = ResultUseCase{Result: categories}
+	return output
+}

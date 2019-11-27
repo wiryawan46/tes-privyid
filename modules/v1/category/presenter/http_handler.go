@@ -27,6 +27,7 @@ func NewHTTPHandler(CategoryUsecase usecase.CategoryUsecase) *HTTPCategoryHandle
 func (h *HTTPCategoryHandler) MountCategory(group *echo.Group)  {
 	group.POST("/category", h.CreateCategory)
 	group.GET("/categories", h.GetAllCategories)
+	group.GET("/category/:id", h.GetCategoryById)
 }
 
 func (h *HTTPCategoryHandler) CreateCategory(c echo.Context) error  {
@@ -60,5 +61,17 @@ func (h *HTTPCategoryHandler) GetAllCategories(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput(err.Error(), nil))
 	}
 	result, _ := categories.Result.(model.Categories)
+	return c.JSON(http.StatusOK, result)
+}
+
+func (h *HTTPCategoryHandler) GetCategoryById(c echo.Context) error {
+	idCategory := c.Param("id")
+	category := h.CategoryUsecase.GetCategoryById(idCategory)
+	if category.Error != nil {
+		err := fmt.Errorf("Gagal mendapatkan category")
+		log.Println(category.Error.Error())
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput(err.Error(), nil))
+	}
+	result, _ := category.Result.(model.Categories)
 	return c.JSON(http.StatusOK, result)
 }

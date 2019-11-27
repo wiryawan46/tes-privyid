@@ -18,4 +18,5 @@ type ProductUsecase interface {
 	UploadImage(productId string, param model.Image) ResultUseCase
 	GetAllProduct() ResultUseCase
 	GetProductById(productId string) ResultUseCase
+	UpdateProduct(productId string, param model.Product) ResultUseCase
 }

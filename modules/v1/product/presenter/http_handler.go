@@ -31,6 +31,7 @@ func (h *HTTPProductHandler) MountProduct(group *echo.Group)  {
 	group.POST("/product-image", h.UploadImage)
 	group.GET("/products", h.GetAllProduct)
 	group.GET("/product/:id", h.GetProductById)
+	group.PUT("/product/:id", h.UpdateProduct)
 }
 
 func (h *HTTPProductHandler) CreateProduct(c echo.Context) error  {
@@ -125,4 +126,28 @@ func (h *HTTPProductHandler) GetProductById(c echo.Context) error {
 	}
 	result, _ := products.Result.([]model.Product)
 	return c.JSON(http.StatusOK, result)
+}
+
+func (h *HTTPProductHandler) UpdateProduct(c echo.Context) error {
+	productId := c.Param("id")
+	reqData := model.Product{}
+	err := c.Bind(&reqData)
+	if err != nil {
+		log.Println("bind_request_data", err.Error())
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput("Parameter body kosong", nil))
+	}
+
+	saveResult := h.ProductUsecase.UpdateProduct(productId, reqData)
+	if saveResult.Error != nil {
+		err := fmt.Errorf("Gagal menambah data category")
+		log.Println(saveResult.Error.Error())
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput(err.Error(), nil))
+	}
+	data, ok := saveResult.Result.(model.Product)
+	if !ok {
+		err := fmt.Errorf("Gagal mendapatkan data")
+		log.Println(err.Error())
+		return c.JSON(http.StatusOK, helper.ResponseDetailOutput(err.Error(), data))
+	}
+	return c.JSON(http.StatusCreated, data)
 }

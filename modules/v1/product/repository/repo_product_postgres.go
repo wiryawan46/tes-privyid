@@ -109,6 +109,7 @@ func (conn *ProductRepoPostgres) GetAllProduct() ResultRepository {
 
 	return output
 }
+
 func (conn *ProductRepoPostgres) GetCategoryOfProduct(productId string) ResultRepository {
 	output := ResultRepository{}
 	var (
@@ -137,6 +138,7 @@ func (conn *ProductRepoPostgres) GetCategoryOfProduct(productId string) ResultRe
 
 	return output
 }
+
 func (conn *ProductRepoPostgres) GetImageOfProduct(productId string) ResultRepository {
 	output := ResultRepository{}
 	var (
@@ -192,5 +194,51 @@ func (conn *ProductRepoPostgres) GetProductById(productId string) ResultReposito
 	}
 	output = ResultRepository{Result: products}
 
+	return output
+}
+
+func (conn *ProductRepoPostgres) UpdateProduct(productId string, param model.Product) ResultRepository {
+	output := ResultRepository{}
+
+	query := "UPDATE product SET name = $1, description = $2 WHERE id = $3 AND enable = true"
+	sqlStmt, errorDB := conn.dbConn.Prepare(query)
+	if errorDB != nil {
+		log.Println("Error prepare query : ", errorDB.Error())
+		output = ResultRepository{Error: errorDB}
+		return output
+	}
+	success, errorExecute := sqlStmt.Exec(&param.Name, &param.Description, productId)
+	if errorExecute != nil {
+		log.Println("Error executing query : ", errorExecute.Error())
+		output = ResultRepository{Error: errorExecute}
+		return output
+	}
+	success.RowsAffected()
+	delQuery := "DELETE FROM category_product WHERE product_id = $1"
+	_, err := conn.dbConn.Exec(delQuery, productId)
+	if err != nil {
+		log.Println("Error prepare query : ", err.Error())
+		output = ResultRepository{Error: err}
+		return output
+	}
+
+	for i := 0; i < len(param.Categories); i++ {
+		query := "INSERT INTO category_product(product_id, category_id) VALUES($1,$2)"
+		sqlStmt, errorDB := conn.dbConn.Prepare(query)
+		if errorDB != nil {
+			log.Println("Error prepare query : ", errorDB.Error())
+			output = ResultRepository{Error: errorDB}
+			return output
+		}
+		result, errorExecute := sqlStmt.Exec(productId, param.Categories[i].ID)
+		if errorExecute != nil {
+			log.Println("Error executing query : ", errorExecute.Error())
+			output = ResultRepository{Error: errorExecute}
+			return output
+		}
+		result.RowsAffected()
+	}
+
+	output = ResultRepository{Result: param}
 	return output
 }

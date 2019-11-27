@@ -144,3 +144,23 @@ func (rp *ProductUsecaseImpl) GetProductById(productId string) ResultUseCase {
 	output = ResultUseCase{Result: products}
 	return output
 }
+
+func (rp *ProductUsecaseImpl) UpdateProduct(productId string, param model.Product) ResultUseCase {
+	output := ResultUseCase{}
+
+	saveResult := rp.ProductRepository.UpdateProduct(productId, param)
+	if saveResult.Error != nil {
+		log.Println("Error mengupdate data :", saveResult.Error.Error())
+		output = ResultUseCase{Error: saveResult.Error}
+		return output
+	}
+	data, ok := saveResult.Result.(model.Product)
+	if !ok {
+		err := fmt.Errorf("Gagal mendapatkan data")
+		log.Println(err.Error())
+		output = ResultUseCase{Error: err}
+		return output
+	}
+	output = ResultUseCase{Result: data}
+	return output
+}

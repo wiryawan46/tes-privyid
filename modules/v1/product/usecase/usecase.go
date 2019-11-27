@@ -19,4 +19,5 @@ type ProductUsecase interface {
 	GetAllProduct() ResultUseCase
 	GetProductById(productId string) ResultUseCase
 	UpdateProduct(productId string, param model.Product) ResultUseCase
+	DeleteProduct(productId string) ResultUseCase
 }

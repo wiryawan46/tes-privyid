@@ -32,6 +32,7 @@ func (h *HTTPProductHandler) MountProduct(group *echo.Group)  {
 	group.GET("/products", h.GetAllProduct)
 	group.GET("/product/:id", h.GetProductById)
 	group.PUT("/product/:id", h.UpdateProduct)
+	group.DELETE("/product/:id", h.DeleteProduct)
 }
 
 func (h *HTTPProductHandler) CreateProduct(c echo.Context) error  {
@@ -125,11 +126,17 @@ func (h *HTTPProductHandler) GetProductById(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput(err.Error(), nil))
 	}
 	result, _ := products.Result.([]model.Product)
+	if result == nil {
+		err := fmt.Errorf("Product sudah dihapus")
+		log.Println(products.Error.Error())
+		return c.JSON(http.StatusNoContent, helper.ResponseDetailOutput(err.Error(), nil))
+	}
 	return c.JSON(http.StatusOK, result)
 }
 
 func (h *HTTPProductHandler) UpdateProduct(c echo.Context) error {
 	productId := c.Param("id")
+
 	reqData := model.Product{}
 	err := c.Bind(&reqData)
 	if err != nil {
@@ -150,4 +157,20 @@ func (h *HTTPProductHandler) UpdateProduct(c echo.Context) error {
 		return c.JSON(http.StatusOK, helper.ResponseDetailOutput(err.Error(), data))
 	}
 	return c.JSON(http.StatusCreated, data)
+}
+
+func (h *HTTPProductHandler) DeleteProduct(c echo.Context) error {
+	idProduct := c.Param("id")
+	if idProduct == "" {
+		log.Println("no_parameter")
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput("Parameter id diperlukan", nil))
+	}
+	deleteResult := h.ProductUsecase.DeleteProduct(idProduct)
+	if deleteResult.Error != nil {
+		err := fmt.Errorf("Gagal menghapus data product")
+		log.Println(deleteResult.Error.Error())
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput(err.Error(), nil))
+	}
+	result := echo.Map{"message" : "Data Product berhasil dihapus"}
+	return c.JSON(http.StatusOK, result)
 }

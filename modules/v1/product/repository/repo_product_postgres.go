@@ -117,7 +117,7 @@ func (conn *ProductRepoPostgres) GetCategoryOfProduct(productId string) ResultRe
 		productCategories []model2.Category
 	)
 
-	productQuery := "SELECT DISTINCT c.id, c.name FROM category c INNER JOIN category_product cp ON c.id = cp.category_id WHERE cp.product_id = $1"
+	productQuery := "SELECT DISTINCT c.id, c.name FROM category c INNER JOIN category_product cp ON c.id = cp.category_id WHERE cp.product_id = $1 AND c.enable = true"
 	resultDB, errorDB := conn.dbConn.Query(productQuery, productId)
 	if errorDB != nil {
 		log.Println("Error prepare query : ", errorDB.Error())
@@ -146,7 +146,7 @@ func (conn *ProductRepoPostgres) GetImageOfProduct(productId string) ResultRepos
 		productImages []model.Image
 	)
 
-	productQuery := "SELECT DISTINCT i.name, i.file FROM image i INNER JOIN product_image pi ON i.id = pi.image_id WHERE pi.product_id = $1"
+	productQuery := "SELECT DISTINCT i.name, i.file FROM image i INNER JOIN product_image pi ON i.id = pi.image_id WHERE pi.product_id = $1 AND i.enable = true"
 	resultDB, errorDB := conn.dbConn.Query(productQuery, productId)
 	if errorDB != nil {
 		log.Println("Error prepare query : ", errorDB.Error())
@@ -240,5 +240,40 @@ func (conn *ProductRepoPostgres) UpdateProduct(productId string, param model.Pro
 	}
 
 	output = ResultRepository{Result: param}
+	return output
+}
+
+func (conn *ProductRepoPostgres) DeleteProduct(productId string) ResultRepository {
+	output := ResultRepository{}
+
+	query := "UPDATE product SET enable = false WHERE id = $1 AND enable = true"
+	sqlStmt, errorDB := conn.dbConn.Prepare(query)
+	if errorDB != nil {
+		log.Println("Error prepare query : ", errorDB.Error())
+		output = ResultRepository{Error: errorDB}
+		return output
+	}
+	result, errorExecute := sqlStmt.Exec(productId)
+	if errorExecute != nil {
+		log.Println("Error executing query : ", errorExecute.Error())
+		output = ResultRepository{Error: errorExecute}
+		return output
+	}
+	result.RowsAffected()
+	delQuery := "DELETE FROM category_product WHERE product_id = $1"
+	_, err := conn.dbConn.Exec(delQuery, productId)
+	if err != nil {
+		log.Println("Error prepare query : ", err.Error())
+		output = ResultRepository{Error: err}
+		return output
+	}
+	delquery := "DELETE FROM product_image WHERE product_id = $1"
+	_, errs := conn.dbConn.Exec(delquery, productId)
+	if errs != nil {
+		log.Println("Error prepare query : ", err.Error())
+		output = ResultRepository{Error: err}
+		return output
+	}
+	output = ResultRepository{Result: result}
 	return output
 }

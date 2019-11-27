@@ -164,3 +164,16 @@ func (rp *ProductUsecaseImpl) UpdateProduct(productId string, param model.Produc
 	output = ResultUseCase{Result: data}
 	return output
 }
+
+func (rp *ProductUsecaseImpl) DeleteProduct(productId string) ResultUseCase {
+	output := ResultUseCase{}
+
+	deleteResult := rp.ProductRepository.DeleteProduct(productId)
+	if deleteResult.Error != nil {
+		log.Println("Error hapus data :", deleteResult.Error.Error())
+		output = ResultUseCase{Error: deleteResult.Error}
+		return output
+	}
+	output = ResultUseCase{Result: productId}
+	return output
+}

@@ -41,3 +41,18 @@ func (rp *CategoryUsecaseImpl) CreateCategory(param model.Category) ResultUseCas
 	output = ResultUseCase{Result: data}
 	return output
 }
+
+func (rp *CategoryUsecaseImpl) GetAllCategories() ResultUseCase {
+	output := ResultUseCase{}
+
+	resultData := rp.CategoryRepository.GetAllCategories()
+	if resultData.Error != nil {
+		err := fmt.Errorf("Gagal mendapatkan data")
+		log.Println(err.Error())
+		output = ResultUseCase{Error: err}
+		return output
+	}
+	categories, _ := resultData.Result.(model.Categories)
+	output = ResultUseCase{Result: categories}
+	return output
+}

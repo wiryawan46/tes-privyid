@@ -1,6 +1,8 @@
 package usecase
 
-import "pretest-privyid/modules/v1/category/model"
+import (
+	"pretest-privyid/modules/v1/category/model"
+)
 
 /**
  * Created by Manggala Pramuditya Wiryawan on 08/11/19 Nov, 2019
@@ -13,4 +15,5 @@ type ResultUseCase struct {
 
 type CategoryUsecase interface {
 	CreateCategory(param model.Category) ResultUseCase
+	GetAllCategories() ResultUseCase
 }

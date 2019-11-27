@@ -22,7 +22,7 @@ func (s *Service) HTTPServerMain() {
 	e.Use(echoMid.CORS())
 
 	wGroup := e.Group("/public/api/v1")
-	s.CategoryHandler.MountWorkField(wGroup)
+	s.CategoryHandler.MountCategory(wGroup)
 
 	// set REST port
 	var port uint16

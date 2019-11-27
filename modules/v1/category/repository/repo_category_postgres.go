@@ -39,3 +39,32 @@ func (conn *CategoryRepoPostgres) CreateCategory(param model.Category) ResultRep
 	output = ResultRepository{Result: param}
 	return output
 }
+
+func (conn *CategoryRepoPostgres) GetAllCategories() ResultRepository {
+	output := ResultRepository{}
+	var (
+		category model.Category
+		categories model.Categories
+	)
+
+	sqlQuery := "SELECT id, name FROM category WHERE enable = true"
+	resultDB, errorDB := conn.dbConn.Query(sqlQuery)
+	if errorDB != nil {
+		log.Println("Error prepare query : ", errorDB.Error())
+		output = ResultRepository{Error: errorDB}
+		return output
+	}
+
+	for resultDB.Next() {
+		errorRetrievedRecord := resultDB.Scan(&category.ID, &category.Name)
+		if errorRetrievedRecord != nil {
+			log.Println("Error retrieve data : ", errorDB.Error())
+			output = ResultRepository{Error: errorDB}
+			return output
+		}
+		categories = append(categories, category)
+	}
+	output = ResultRepository{Result: categories}
+
+	return output
+}

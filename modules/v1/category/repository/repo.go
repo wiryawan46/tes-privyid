@@ -14,4 +14,5 @@ type ResultRepository struct {
 
 type CategoryRepository interface {
 	CreateCategory(param model.Category) ResultRepository
+	GetAllCategories() ResultRepository
 }

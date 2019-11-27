@@ -23,6 +23,7 @@ func (s *Service) HTTPServerMain() {
 
 	wGroup := e.Group("/public/api/v1")
 	s.CategoryHandler.MountCategory(wGroup)
+	s.ProductHandler.MountProduct(wGroup)
 
 	// set REST port
 	var port uint16

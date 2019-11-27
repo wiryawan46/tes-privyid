@@ -145,8 +145,7 @@ func (conn *ProductRepoPostgres) GetImageOfProduct(productId string) ResultRepos
 		productImage  model.Image
 		productImages []model.Image
 	)
-
-	productQuery := "SELECT DISTINCT i.name, i.file FROM image i INNER JOIN product_image pi ON i.id = pi.image_id WHERE pi.product_id = $1 AND i.enable = true"
+	productQuery := "SELECT DISTINCT i.id, i.name, i.file FROM image i INNER JOIN product_image pi ON i.id = pi.image_id WHERE pi.product_id = $1 AND i.enable = true"
 	resultDB, errorDB := conn.dbConn.Query(productQuery, productId)
 	if errorDB != nil {
 		log.Println("Error prepare query : ", errorDB.Error())
@@ -155,7 +154,7 @@ func (conn *ProductRepoPostgres) GetImageOfProduct(productId string) ResultRepos
 	}
 
 	for resultDB.Next() {
-		errorRetrievedRecord := resultDB.Scan(&productImage.Name, &productImage.File)
+		errorRetrievedRecord := resultDB.Scan(&productImage.ID, &productImage.Name, &productImage.File)
 		if errorRetrievedRecord != nil {
 			log.Println("Error retrieve data : ", errorDB.Error())
 			output = ResultRepository{Error: errorDB}
@@ -274,6 +273,27 @@ func (conn *ProductRepoPostgres) DeleteProduct(productId string) ResultRepositor
 		output = ResultRepository{Error: err}
 		return output
 	}
+	output = ResultRepository{Result: result}
+	return output
+}
+
+func (conn *ProductRepoPostgres) DeleteImageProduct(imageId string) ResultRepository {
+	output := ResultRepository{}
+
+	query := "UPDATE image SET enable = false WHERE id = $1 AND enable = true"
+	sqlStmt, errorDB := conn.dbConn.Prepare(query)
+	if errorDB != nil {
+		log.Println("Error prepare query : ", errorDB.Error())
+		output = ResultRepository{Error: errorDB}
+		return output
+	}
+	result, errorExecute := sqlStmt.Exec(imageId)
+	if errorExecute != nil {
+		log.Println("Error executing query : ", errorExecute.Error())
+		output = ResultRepository{Error: errorExecute}
+		return output
+	}
+	result.RowsAffected()
 	output = ResultRepository{Result: result}
 	return output
 }

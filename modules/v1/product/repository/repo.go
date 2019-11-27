@@ -21,4 +21,5 @@ type ProductRepository interface {
 	GetProductById(productId string) ResultRepository
 	UpdateProduct(productId string, param model.Product) ResultRepository
 	DeleteProduct(productId string) ResultRepository
+	DeleteImageProduct(imageId string) ResultRepository
 }

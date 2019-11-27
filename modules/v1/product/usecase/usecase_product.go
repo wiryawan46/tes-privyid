@@ -60,7 +60,7 @@ func (rp *ProductUsecaseImpl) UploadImage(productId string, param model.Image) R
 func (rp *ProductUsecaseImpl) GetAllProduct() ResultUseCase {
 	output := ResultUseCase{}
 
-	var	products []model.Product
+	var products []model.Product
 
 	resultProduct := rp.ProductRepository.GetAllProduct()
 	if resultProduct.Error != nil {
@@ -104,7 +104,7 @@ func (rp *ProductUsecaseImpl) GetAllProduct() ResultUseCase {
 func (rp *ProductUsecaseImpl) GetProductById(productId string) ResultUseCase {
 	output := ResultUseCase{}
 
-	var	products []model.Product
+	var products []model.Product
 
 	resultProduct := rp.ProductRepository.GetProductById(productId)
 	if resultProduct.Error != nil {
@@ -167,6 +167,39 @@ func (rp *ProductUsecaseImpl) UpdateProduct(productId string, param model.Produc
 
 func (rp *ProductUsecaseImpl) DeleteProduct(productId string) ResultUseCase {
 	output := ResultUseCase{}
+
+	resultProduct := rp.ProductRepository.GetProductById(productId)
+	if resultProduct.Error != nil {
+		err := fmt.Errorf("Gagal mendapatkan data")
+		log.Println(err.Error())
+		output = ResultUseCase{Error: err}
+		return output
+	}
+	products := resultProduct.Result.([]model.Product)
+	for i := 0; i < len(products); i++ {
+		id := strconv.Itoa(products[i].ID)
+		resultCategory := rp.ProductRepository.GetImageOfProduct(id)
+		if resultCategory.Error != nil {
+			err := fmt.Errorf("Gagal mendapatkan data category")
+			log.Println(err.Error())
+			output = ResultUseCase{Error: err}
+			return output
+		}
+		images, _ := resultCategory.Result.([]model.Image)
+		products[i].Image = images
+	}
+
+	for i := 0; i < len(products); i++ {
+		for j := 0; j < len(products[i].Image); j++ {
+			id := strconv.Itoa(products[i].Image[j].ID)
+			deleteResult := rp.ProductRepository.DeleteImageProduct(id)
+			if deleteResult.Error != nil {
+				log.Println("Error hapus data image :", deleteResult.Error.Error())
+				output = ResultUseCase{Error: deleteResult.Error}
+				return output
+			}
+		}
+	}
 
 	deleteResult := rp.ProductRepository.DeleteProduct(productId)
 	if deleteResult.Error != nil {

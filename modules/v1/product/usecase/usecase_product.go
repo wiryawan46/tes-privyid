@@ -41,3 +41,16 @@ func (rp *ProductUsecaseImpl) CreateProduct(param model.Product) ResultUseCase {
 	output = ResultUseCase{Result: data}
 	return output
 }
+
+func (rp *ProductUsecaseImpl) UploadImage(productId string, param model.Image) ResultUseCase {
+	output := ResultUseCase{}
+
+	uploadResult := rp.ProductRepository.UploadImage(productId, param)
+	if uploadResult.Error != nil {
+		log.Println("Error menyimpan gambar :", uploadResult.Error.Error())
+		output = ResultUseCase{Error: uploadResult.Error}
+		return output
+	}
+	output = ResultUseCase{Result: param}
+	return output
+}

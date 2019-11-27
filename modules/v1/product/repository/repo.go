@@ -14,4 +14,5 @@ type ResultRepository struct {
 
 type ProductRepository interface {
 	CreateProduct(param model.Product) ResultRepository
+	UploadImage(productId string, param model.Image) ResultRepository
 }

@@ -3,8 +3,10 @@ package presenter
 import (
 	"fmt"
 	"github.com/labstack/echo"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"pretest-privyid/helper"
 	"pretest-privyid/modules/v1/product/model"
 	"pretest-privyid/modules/v1/product/usecase"
@@ -26,6 +28,7 @@ func NewHTTPHandler(ProductUsecase usecase.ProductUsecase) *HTTPProductHandler {
 
 func (h *HTTPProductHandler) MountProduct(group *echo.Group)  {
 	group.POST("/product", h.CreateProduct)
+	group.POST("/product-image", h.UploadImage)
 }
 
 func (h *HTTPProductHandler) CreateProduct(c echo.Context) error  {
@@ -49,4 +52,52 @@ func (h *HTTPProductHandler) CreateProduct(c echo.Context) error  {
 		return c.JSON(http.StatusOK, helper.ResponseDetailOutput(err.Error(), data))
 	}
 	return c.JSON(http.StatusCreated, data)
+}
+
+func (h *HTTPProductHandler) UploadImage(c echo.Context) error {
+	productId := c.FormValue("productId")
+	imageName := c.FormValue("imageName")
+	productImage, errorFile := c.FormFile("productImage")
+	if errorFile != nil {
+		err := fmt.Errorf("File kosong")
+		log.Println(errorFile.Error())
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput(err.Error(), nil))
+	}
+	src, error := productImage.Open()
+	if error != nil {
+		err := fmt.Errorf("Gagal membaca file")
+		log.Println(error.Error())
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput(err.Error(), nil))
+	}
+	defer src.Close()
+
+	// Destination
+	path := "images/" + productImage.Filename
+	dst, error := os.Create(path)
+	if error != nil {
+		err := fmt.Errorf("Gagal menyimpan file")
+		log.Println(error.Error())
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput(err.Error(), nil))
+	}
+	defer dst.Close()
+
+	// Copy
+	if _, error = io.Copy(dst, src); error != nil {
+		err := fmt.Errorf("Gagal menyimpan file")
+		log.Println(error.Error())
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput(err.Error(), nil))
+	}
+
+	image := model.Image{}
+	image.Name = imageName
+	image.File = path
+
+	saveResult := h.ProductUsecase.UploadImage(productId, image)
+	if saveResult.Error != nil {
+		err := fmt.Errorf("Gagal upload foto product")
+		log.Println(saveResult.Error.Error())
+		return c.JSON(http.StatusBadRequest, helper.ResponseDetailOutput(err.Error(), nil))
+	}
+	result := echo.Map{"message" : "Berhasil upload gambar"}
+	return c.JSON(http.StatusCreated, result)
 }

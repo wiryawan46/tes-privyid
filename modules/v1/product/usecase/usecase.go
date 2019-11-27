@@ -15,4 +15,5 @@ type ResultUseCase struct {
 
 type ProductUsecase interface {
 	CreateProduct(param model.Product) ResultUseCase
+	UploadImage(productId string, param model.Image) ResultUseCase
 }
